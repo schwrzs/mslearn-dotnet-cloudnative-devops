@@ -22,13 +22,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checks out the repository this file is in
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Logs in with your Azure credentials stored in GitHub secrets
       - name: Azure login
-        uses: azure/login@v1.4.6
+        uses: azure/login@2
         with:
-          creds: '${{ secrets.AZURE_CREDENTIALS }}'
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       # Builds and pushes an image up to your Azure Container Registry
       - name: Build and push image to ACR
