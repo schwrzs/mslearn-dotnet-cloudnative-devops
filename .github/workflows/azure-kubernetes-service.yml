@@ -1,69 +1,36 @@
 name: Build and deploy an app to AKS
 
 on:
-push:
-branches: ["main"]
-workflow_dispatch:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
 
 env:
-AZURE_CONTAINER_REGISTRY: eshopacrdevops1549106886
-CONTAINER_NAME: productservice
-RESOURCE_GROUP: rg-devops
-CLUSTER_NAME: aks-eshop
-DEPLOYMENT_MANIFEST_PATH: ./product.yml
-DOCKER_PATH: ./DockerfileProducts.acr
+  # Local environment variables used later in the workflow
+  AZURE_CONTAINER_REGISTRY: 'eshopacrdevops1549106886'
+  CONTAINER_NAME: 'productservice'
+  RESOURCE_GROUP: 'rg-devops'
+  CLUSTER_NAME: 'aks-eshop'
+  DEPLOYMENT_MANIFEST_PATH: './product.yml'
+  DOCKER_PATH: './DockerfileProducts.acr'
 
 jobs:
-build-and-deploy:
-runs-on: ubuntu-latest
+  buildImage:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      # Checks out the repository this file is in
+      - uses: actions/checkout@v3
 
-```
-permissions:
-  contents: read
-  id-token: write
+      # Logs in with your Azure credentials stored in GitHub secrets
+      - name: Azure login
+        uses: azure/login@v1.4.6
+        with:
+          creds: '${{ secrets.AZURE_CREDENTIALS }}'
 
-steps:
-  # ✅ Checkout repo (updated)
-  - name: Checkout code
-    uses: actions/checkout@v4
-
-  # ✅ Azure login (UPDATED → v2)
-  - name: Azure login
-    uses: azure/login@v2
-    with:
-      creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-  # ✅ Ensure ACR is accessible
-  - name: Verify ACR
-    run: |
-      az acr show --name $AZURE_CONTAINER_REGISTRY --resource-group $RESOURCE_GROUP
-
-  # ✅ Build & push using ACR Tasks (no Docker needed)
-  - name: Build and push image to ACR
-    run: |
-      az acr build \
-        --file $DOCKER_PATH \
-        --image $AZURE_CONTAINER_REGISTRY.azurecr.io/$CONTAINER_NAME:${{ github.sha }} \
-        --registry $AZURE_CONTAINER_REGISTRY \
-        --resource-group $RESOURCE_GROUP \
-        .
-
-  # ✅ Set AKS context
-  - name: Set AKS context
-    run: |
-      az aks get-credentials \
-        --resource-group $RESOURCE_GROUP \
-        --name $CLUSTER_NAME \
-        --overwrite-existing
-
-  # ✅ Deploy to AKS
-  - name: Deploy to AKS
-    run: |
-      kubectl apply -f $DEPLOYMENT_MANIFEST_PATH
-
-  # ✅ Update image in deployment (important!)
-  - name: Update image in AKS
-    run: |
-      kubectl set image deployment/$CONTAINER_NAME \
-      $CONTAINER_NAME=$AZURE_CONTAINER_REGISTRY.azurecr.io/$CONTAINER_NAME:${{ github.sha }}
-```
+      # Builds and pushes an image up to your Azure Container Registry
+      - name: Build and push image to ACR
+        run: |
+          az acr build --file ${{ env.DOCKER_PATH }} --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }} --registry ${{ env.AZURE_CONTAINER_REGISTRY }} -g ${{ env.RESOURCE_GROUP }} .
