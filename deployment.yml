@@ -32,7 +32,7 @@ spec:
             - name: ImagePrefix
               value: /images
             - name: ConnectionStrings__AppConfig
-              value: "Endpoint=https://eshop-app-features687359439.azconfig.io;Id=ieuN;Secret=QpT9wpanIC4OondNdNI8FVaC1NK4b7vH1SaDsS8NOw6WA5ShaZo8JQQJ99CCAC5RqLJdwCsbAAACAZAC2Nyg"
+              value: "Endpoint=https://..."
 apiVersion: v1
 kind: Service
 metadata:
