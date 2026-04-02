@@ -3,10 +3,10 @@ kind: Deployment
 metadata:
   name: storeimage
 spec:
-  selector: # Define the wrapping strategy
-    matchLabels: # Match all pods with the defined labels
-      app: storeimage # Labels follow the `name: value` template
-  template: # This is the template of the pod inside the deployment
+  selector:
+    matchLabels:
+      app: storeimage
+  template:
     metadata:
       labels:
         app: storeimage
@@ -14,7 +14,7 @@ spec:
       nodeSelector:
         kubernetes.io/os: linux
       containers:
-        - image: [replace with your ACR name].azurecr.io/storeimage:v1
+        - image: eshopacrdevops1549106886.azurecr.io/storeimage:v1
           name: storeimage
           resources:
             requests:
@@ -31,7 +31,8 @@ spec:
               value: http://eshop-backend
             - name: ImagePrefix
               value: /images
----
+            - name: ConnectionStrings__AppConfig
+              value: "Endpoint=https://eshop-app-features687359439.azconfig.io;Id=ieuN;Secret=QpT9wpanIC4OondNdNI8FVaC1NK4b7vH1SaDsS8NOw6WA5ShaZo8JQQJ99CCAC5RqLJdwCsbAAACAZAC2Nyg"
 apiVersion: v1
 kind: Service
 metadata:
@@ -41,20 +42,20 @@ spec:
   selector:
     app: storeimage
   ports:
-    - port: 80 # SERVICE exposed port
-      name: http # SERVICE port name
-      protocol: TCP # The protocol the SERVICE will listen to
-      targetPort: 8080 # Port to forward to in the POD
+    - port: 80
+      name: http
+      protocol: TCP
+      targetPort: 8080
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: productservice
 spec:
-  selector: # Define the wrapping strategy
-    matchLabels: # Match all pods with the defined labels
-      app: productservice # Labels follow the `name: value` template
-  template: # This is the template of the pod inside the deployment
+  selector:
+    matchLabels:
+      app: productservice
+  template:
     metadata:
       labels:
         app: productservice
@@ -62,7 +63,7 @@ spec:
       nodeSelector:
         kubernetes.io/os: linux
       containers:
-        - image: [replace with your ACR name].azurecr.io/productservice:v1
+        - image: eshopacrdevops1549106886.azurecr.io/productservice:v1
           name: productservice
           resources:
             requests:
@@ -98,14 +99,14 @@ spec:
   rules:
   - http:
       paths:
-      - path: / # This defines an ingress rule to route traffic to the front end store service
+      - path: /
         pathType: Prefix
         backend:
           service:
             name: eshop-website
             port:
               number: 80
-      - path: /images/ # This defines an ingress rule to route image requests to the backend product service
+      - path: /images/
         pathType: Prefix
         backend:
           service:
